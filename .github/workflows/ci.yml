@@ -5,7 +5,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main # Запуск при пуше в master
+      - master # Запуск при пуше в master
   pull_request: # Запуск при создании/обновлении Pull Request
 
 # Права доступа для GitHub Actions
@@ -39,36 +39,49 @@ jobs:
       - name: Install Dependencies
         run: npm ci # Используем ci для быстрой и надежной установки
 
-      # 4. Установка зависимостей Playwright
+      # 4. Кэширование браузеров Playwright
+      - name: Cache Playwright Browsers
+        id: cache-playwright # Добавляем id, чтобы ссылаться на output шага
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright # Директория, где Playwright хранит браузеры
+          # Ключ кэша на основе ОС и хэша package-lock.json
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          # Ключ для восстановления, если точного совпадения нет
+          restore-keys: |
+            playwright-browsers-${{ runner.os }}-
+
+      # 5. Установка зависимостей Playwright (только если кэш не найден)
       - name: Install Playwright Browsers
+        # Запускаем установку, только если кэш не был восстановлен (cache-hit != 'true')
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps # Установка браузеров для Playwright
 
       # Опционально: Старт Nx Cloud для распределенных вычислений и кэширования
       # - name: Start Nx Cloud CI Run
       #   run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
 
-      # 5. Линтинг
+      # 6. Линтинг
       - name: Lint Code
         run: npx nx run-many -t lint
 
-      # 6. Юнит-тесты
+      # 7. Юнит-тесты
       - name: Run Unit Tests
         run: npx nx run-many -t test --coverage # Запуск юнит-тестов с покрытием
 
-      # 7. Проверка типов TypeScript
+      # 8. Проверка типов TypeScript
       - name: Type Check
         run: npx nx run-many -t typecheck
 
-      # 8. Сборка приложения для Production
+      # 9. Сборка приложения для Production
       - name: Build Application
         run: npx nx run-many -t build --configuration=production # Сборка с production конфигурацией
 
-      # 9. Проверка на уязвимости (npm audit)
+      # 10. Проверка на уязвимости (npm audit)
       - name: Security Vulnerability Check
         run: npm audit --audit-level=moderate # Проверка на уязвимости средней и высокой степени
 
-      # 10. E2E тесты (Playwright)
-      # Использует порт 3000, указанный в playwright.config.ts
+      # 11. E2E тесты (Playwright)
       - name: Run E2E Tests
         run: npx nx run-many -t e2e
 
@@ -172,3 +185,4 @@ jobs:
         run: |
           echo "Tearing down old Blue environment after verification/wait period..."
           # Скрипт для удаления старого Blue окружения
+
