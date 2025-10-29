@@ -1,43 +1,174 @@
-name: CI
+# Имя рабочего процесса
+name: CI/CD Pipeline
 
+# Триггеры для запуска рабочего процесса
 on:
   push:
     branches:
-      - master
-  pull_request:
+      - main # Запуск при пуше в master
+  pull_request: # Запуск при создании/обновлении Pull Request
 
+# Права доступа для GitHub Actions
 permissions:
   actions: read
   contents: read
+  # Добавьте права для деплоя, если используете GitHub Environments/Secrets для деплоя
+  # deployments: write
+  # id-token: write # Если используете OIDC для аутентификации в облаке
 
 jobs:
-  main:
+  # Работа CI (Continuous Integration)
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # 1. Получение кода из репозитория
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
-          filter: tree:0
-          fetch-depth: 0
+          fetch-depth: 0 # Необходимо для Nx Affected commands
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
-
-      # Cache node_modules
-      - uses: actions/setup-node@v4
+      # 2. Настройка Node.js и кэширование зависимостей
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'npm' # Кэширование npm зависимостей
 
-      - run: npm ci
-      - run: npx playwright install --with-deps
+      # 3. Установка зависимостей
+      - name: Install Dependencies
+        run: npm ci # Используем ci для быстрой и надежной установки
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      # When you enable task distribution, run the e2e-ci task instead of e2e
-      - run: npx nx run-many -t lint test build typecheck e2e
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: npx nx fix-ci
-        if: always()
+      # 4. Установка зависимостей Playwright
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps # Установка браузеров для Playwright
+
+      # Опционально: Старт Nx Cloud для распределенных вычислений и кэширования
+      # - name: Start Nx Cloud CI Run
+      #   run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
+
+      # 5. Линтинг
+      - name: Lint Code
+        run: npx nx run-many -t lint
+
+      # 6. Юнит-тесты
+      - name: Run Unit Tests
+        run: npx nx run-many -t test --coverage # Запуск юнит-тестов с покрытием
+
+      # 7. Проверка типов TypeScript
+      - name: Type Check
+        run: npx nx run-many -t typecheck
+
+      # 8. Сборка приложения для Production
+      - name: Build Application
+        run: npx nx run-many -t build --configuration=production # Сборка с production конфигурацией
+
+      # 9. Проверка на уязвимости (npm audit)
+      - name: Security Vulnerability Check
+        run: npm audit --audit-level=moderate # Проверка на уязвимости средней и высокой степени
+
+      # 10. E2E тесты (Playwright)
+      # Использует порт 3000, указанный в playwright.config.ts
+      - name: Run E2E Tests
+        run: npx nx run-many -t e2e
+
+      # Опционально: Загрузка артефактов сборки (если они нужны для деплоя или других шагов)
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/apps/react-ci/.next # Путь к артефактам сборки Next.js
+            # Добавьте другие пути, если необходимо
+
+      # Опционально: Placeholder для проверки качества кода (SonarQube и т.д.)
+      # - name: Code Quality Scan (Placeholder)
+      #   run: echo "Run SonarQube scanner or similar tool here"
+
+      # Опционально: Placeholder для проверки метрик производительности (Lighthouse)
+      # Требует развернутого preview или staging окружения
+      # - name: Performance Metrics Check (Placeholder)
+      #   run: echo "Run Lighthouse CI or similar tool here against a deployed environment"
+
+      # Опционально: Если используете Nx Cloud и хотите исправить ошибки CI автоматически
+      # - name: Fix CI Issues (Nx Cloud)
+      #   run: npx nx fix-ci
+      #   if: failure() # Запускать только если предыдущие шаги упали
+
+  # Работа CD (Continuous Deployment) - Запускается только при пуше в master
+  deploy:
+    name: Continuous Deployment
+    needs: ci # Зависит от успешного завершения работы ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' # Условие запуска: пуш в master
+
+    # Опционально: Укажите окружение для деплоя (для использования secrets и правил GitHub Environments)
+    # environment:
+    #   name: production
+    #   url: <your-production-url> # URL вашего продакшн окружения
+
+    steps:
+      # 1. Получение кода (может быть необязательно, если артефакты содержат все необходимое)
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Настройка Node.js (если нужны Node.js инструменты для деплоя)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # cache: 'npm' # Кэширование может быть не нужно, если зависимости не устанавливаются
+
+      # 3. Скачивание артефактов сборки
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/apps/react-ci # Укажите путь для распаковки артефактов
+
+      # 4. Сборка Docker образа (Пример)
+      # Вам нужно создать Dockerfile в корне проекта или в директории приложения
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub (или другой registry)
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} # Используйте GitHub Secrets
+          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Используйте GitHub Secrets
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # Контекст сборки (возможно, нужно изменить на ./dist/apps/react-ci)
+          file: ./Dockerfile # Укажите путь к вашему Dockerfile
+          push: true
+          tags: |
+            your-dockerhub-username/react-ci:latest
+            your-dockerhub-username/react-ci:${{ github.sha }} # Тег с SHA коммита
+
+      # 5. Blue-Green Deployment (Placeholder - сильно зависит от вашей инфраструктуры)
+      - name: Deploy to Green Environment (Placeholder)
+        run: |
+          echo "Deploying image your-dockerhub-username/react-ci:${{ github.sha }} to Green environment..."
+          # Здесь будет ваш скрипт или команда для деплоя в Green (Kubernetes, AWS ECS, Vercel, etc.)
+          # Пример: kubectl set image deployment/myapp myapp=your-dockerhub-username/react-ci:${{ github.sha }} --namespace=green
+
+      - name: Run Smoke Tests on Green (Placeholder)
+        run: |
+          echo "Running smoke tests on Green environment..."
+          # Скрипт для запуска базовых тестов на работоспособность Green окружения
+          # curl --fail <green-environment-url> || exit 1
+
+      - name: Switch Traffic to Green (Placeholder)
+        run: |
+          echo "Switching production traffic to Green environment..."
+          # Скрипт или команда для переключения трафика (обновление Ingress, Load Balancer, DNS и т.д.)
+          # Пример: kubectl patch ingress myapp-ingress --type='json' -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/serviceName", "value": "myapp-green-service"}]'
+
+      - name: Tear Down Blue Environment (Optional Placeholder)
+        run: |
+          echo "Tearing down old Blue environment after verification/wait period..."
+          # Скрипт для удаления старого Blue окружения
