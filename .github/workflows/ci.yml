@@ -5,7 +5,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master # Запуск при пуше в master
+      - main # Запуск при пуше в master
   pull_request: # Запуск при создании/обновлении Pull Request
 
 # Права доступа для GitHub Actions
