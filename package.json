@@ -6,8 +6,8 @@
     "nx": "node ./node_modules/nx/bin/nx",
     "ng": "node --max-old-space-size=8192 ./node_modules/nx/bin/nx",
     "*** react-ci ***": "",
-    "run": "node ./node_modules/nx/bin/nx run react-ci:serve:development --host 0.0.0.0 --poll 500 --no-cloud",
-    "react-ci:serve:production": "node --max-old-space-size=8192 ./node_modules/nx/bin/nx run react-ci:serve:production --host 0.0.0.0 --poll 500 --no-cloud",
+    "run": "node ./node_modules/nx/bin/nx run react-ci:start:development --no-cloud",
+    "react-ci:serve:production": "node --max-old-space-size=8192 ./node_modules/nx/bin/nx run react-ci:start:production --no-cloud",
     "react-ci:build:development": "node --max-old-space-size=8192 ./node_modules/nx/bin/nx run react-ci:build:development --no-cloud",
     "build": "nx run react-ci:build:production --no-cloud",
     "react-ci:lint:fix": "node --max-old-space-size=8192 ./node_modules/nx/bin/nx run react-ci:lint --fix=true --no-cloud",
@@ -25,7 +25,7 @@
   },
   "private": true,
   "dependencies": {
-    "next": "15.2.5",
+    "next": "15.5.6",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
