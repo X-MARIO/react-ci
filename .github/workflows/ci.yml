@@ -62,11 +62,11 @@ jobs:
 
       # 6. Линтинг
       - name: Lint Code
-        run: npx nx run-many -t lint
+        run: npx nx run-many -t lint --verbose
 
       # 7. Юнит-тесты
       - name: Run Unit Tests
-        run: npx nx run-many -t test --coverage # Запуск юнит-тестов с покрытием
+        run: npx nx run-many -t test --coverage --verbose # Запуск юнит-тестов с покрытием
 
       # 8. Проверка типов TypeScript
       - name: Type Check
