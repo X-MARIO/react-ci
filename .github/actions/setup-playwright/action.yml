@@ -13,13 +13,12 @@ runs:
         restore-keys: |
           playwright-browsers-${{ runner.os }}-
 
-    # --- ДОБАВЬТЕ ЭТОТ ШАГ ---
+    # Обновляем этот шаг, добавляя libvpx9
     - name: Install WebKit system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libwoff1
+        sudo apt-get install -y libwoff1 libvpx9
       shell: bash
-    # --- КОНЕЦ НОВОГО ШАГА ---
 
     - name: Install Playwright Browsers
       if: steps.cache-playwright.outputs.cache-hit != 'true'
