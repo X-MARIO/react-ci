@@ -1,5 +1,6 @@
 name: 'Setup Playwright'
-description: 'Caches and installs Playwright browsers'
+description: 'Caches and installs Playwright browsers and system dependencies'
+
 runs:
   using: 'composite'
   steps:
@@ -12,7 +13,16 @@ runs:
         restore-keys: |
           playwright-browsers-${{ runner.os }}-
 
+    # --- ДОБАВЬТЕ ЭТОТ ШАГ ---
+    - name: Install WebKit system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwoff1
+      shell: bash
+    # --- КОНЕЦ НОВОГО ШАГА ---
+
     - name: Install Playwright Browsers
       if: steps.cache-playwright.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps
+      timeout-minutes: 15
       shell: bash
