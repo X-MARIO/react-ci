@@ -24,5 +24,4 @@ runs:
     - name: Install Playwright Browsers
       if: steps.cache-playwright.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps
-      timeout-minutes: 15
       shell: bash
