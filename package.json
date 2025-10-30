@@ -85,6 +85,13 @@
   "overrides": {
     "koa": "3.1.1"
   },
+  "optionalDependencies": {
+    "@nx/nx-darwin-arm64": "22.0.2",
+    "@nx/nx-darwin-x64": "22.0.2",
+    "@nx/nx-linux-x64-gnu": "22.0.2",
+    "@nx/nx-linux-x64-musl": "22.0.2",
+    "@nx/nx-win32-x64-msvc": "22.0.2"
+  },
   "workspaces": [
     "apps/*"
   ]
