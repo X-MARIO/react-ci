@@ -40,6 +40,7 @@ jobs:
         run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        timeout-minutes: 5
 
       # 4. Кэширование браузеров Playwright (Этот шаг у вас уже есть и он правильный)
       - name: Cache Playwright Browsers
