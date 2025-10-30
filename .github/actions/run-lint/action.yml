@@ -1,0 +1,13 @@
+name: 'Run Lint'
+description: 'Runs linter'
+inputs:
+  command:
+    description: 'Lint command to run'
+    required: false
+    default: 'npx nx run-many -t lint --verbose'
+runs:
+  using: 'composite'
+  steps:
+    - name: Lint Code
+      run: ${{ inputs.command }}
+      shell: bash

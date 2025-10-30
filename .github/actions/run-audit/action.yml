@@ -1,0 +1,13 @@
+name: 'Run Security Audit'
+description: 'Runs npm audit'
+inputs:
+  command:
+    description: 'Audit command to run'
+    required: false
+    default: 'npm audit --audit-level=moderate'
+runs:
+  using: 'composite'
+  steps:
+    - name: Security Vulnerability Check
+      run: ${{ inputs.command }}
+      shell: bash

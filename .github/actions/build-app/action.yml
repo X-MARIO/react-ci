@@ -1,0 +1,15 @@
+name: 'Build Application'
+description: 'Builds the production application and uploads artifacts'
+runs:
+  using: 'composite'
+  steps:
+    - name: Build Application
+      run: npx nx run-many -t build --configuration=production # Сборка с production конфигурацией
+      shell: bash
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          dist/apps/react-ci/.next # Путь к артефактам сборки Next.js

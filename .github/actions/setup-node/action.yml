@@ -1,0 +1,19 @@
+name: 'Setup Node.js'
+description: 'Sets up Node.js and caches package manager dependencies'
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20'
+  cache-manager:
+    description: 'Package manager to cache (npm, yarn, pnpm)'
+    required: false
+    default: 'npm'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache-manager }}

@@ -1,0 +1,13 @@
+name: 'Run Type Check'
+description: 'Runs TypeScript type checking'
+inputs:
+  command:
+    description: 'Type check command to run'
+    required: false
+    default: 'npx nx run-many -t typecheck'
+runs:
+  using: 'composite'
+  steps:
+    - name: Type Check
+      run: ${{ inputs.command }}
+      shell: bash

@@ -1,188 +1,79 @@
-# Имя рабочего процесса
 name: CI/CD Pipeline
 
-# Триггеры для запуска рабочего процесса
 on:
   push:
-    branches:
-      - main # Запуск при пуше в master
-  pull_request: # Запуск при создании/обновлении Pull Request
+    branches: [ main ]
+  pull_request:
 
-# Права доступа для GitHub Actions
 permissions:
   actions: read
   contents: read
-  # Добавьте права для деплоя, если используете GitHub Environments/Secrets для деплоя
-  # deployments: write
-  # id-token: write # Если используете OIDC для аутентификации в облаке
 
 jobs:
-  # Работа CI (Continuous Integration)
+  # --- CI ---
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
     steps:
-      # 1. Получение кода из репозитория
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Необходимо для Nx Affected commands
-
-      # 2. Настройка Node.js и кэширование зависимостей
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm' # Кэширование npm зависимостей
-
-      # 3. Установка зависимостей (без скачивания браузеров)
-      - name: Install Dependencies
-        run: npm ci
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        timeout-minutes: 5
-
-      # 4. Кэширование браузеров Playwright (Этот шаг у вас уже есть и он правильный)
-      - name: Cache Playwright Browsers
-        id: cache-playwright
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            playwright-browsers-${{ runner.os }}-
-
-      # 5. Установка зависимостей Playwright (Этот шаг тоже правильный)
-      - name: Install Playwright Browsers
-        if: steps.cache-playwright.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps # Установка браузеров для Playwright
-
-      # Опционально: Старт Nx Cloud для распределенных вычислений и кэширования
-      # - name: Start Nx Cloud CI Run
-      #   run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
-
-      # 6. Линтинг
-      - name: Lint Code
-        run: npx nx run-many -t lint --verbose
-
-      # 7. Юнит-тесты
-      - name: Run Unit Tests
-        run: npx nx run-many -t test --coverage --verbose # Запуск юнит-тестов с покрытием
-
-      # 8. Проверка типов TypeScript
-      - name: Type Check
-        run: npx nx run-many -t typecheck
-
-      # 9. Сборка приложения для Production
-      - name: Build Application
-        run: npx nx run-many -t build --configuration=production # Сборка с production конфигурацией
-
-      # 10. Проверка на уязвимости (npm audit)
-      - name: Security Vulnerability Check
-        run: npm audit --audit-level=moderate # Проверка на уязвимости средней и высокой степени
-
-      # 11. E2E тесты (Playwright)
-      - name: Run E2E Tests
-        run: npx nx run-many -t e2e
-
-      # Опционально: Загрузка артефактов сборки (если они нужны для деплоя или других шагов)
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            dist/apps/react-ci/.next # Путь к артефактам сборки Next.js
-            # Добавьте другие пути, если необходимо
-
-      # Опционально: Placeholder для проверки качества кода (SonarQube и т.д.)
-      # - name: Code Quality Scan (Placeholder)
-      #   run: echo "Run SonarQube scanner or similar tool here"
-
-      # Опционально: Placeholder для проверки метрик производительности (Lighthouse)
-      # Требует развернутого preview или staging окружения
-      # - name: Performance Metrics Check (Placeholder)
-      #   run: echo "Run Lighthouse CI or similar tool here against a deployed environment"
-
-      # Опционально: Если используете Nx Cloud и хотите исправить ошибки CI автоматически
-      # - name: Fix CI Issues (Nx Cloud)
-      #   run: npx nx fix-ci
-      #   if: failure() # Запускать только если предыдущие шаги упали
-
-  # Работа CD (Continuous Deployment) - Запускается только при пуше в master
-  deploy:
-    name: Continuous Deployment
-    needs: ci # Зависит от успешного завершения работы ci
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' # Условие запуска: пуш в master
-
-    # Опционально: Укажите окружение для деплоя (для использования secrets и правил GitHub Environments)
-    # environment:
-    #   name: production
-    #   url: <your-production-url> # URL вашего продакшн окружения
-
-    steps:
-      # 1. Получение кода (может быть необязательно, если артефакты содержат все необходимое)
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Настройка Node.js (если нужны Node.js инструменты для деплоя)
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          # cache: 'npm' # Кэширование может быть не нужно, если зависимости не устанавливаются
+        uses: ./.github/actions/setup-node
+        # Вы можете передать параметры, если они отличаются от стандартных
+        # with:
+        #   node-version: 20
+        #   cache-manager: 'npm'
 
-      # 3. Скачивание артефактов сборки
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: dist/apps/react-ci # Укажите путь для распаковки артефактов
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+        # with:
+        #   command: 'npm ci'
 
-      # 4. Сборка Docker образа (Пример)
-      # Вам нужно создать Dockerfile в корне проекта или в директории приложения
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Playwright
+        uses: ./.github/actions/setup-playwright
 
-      - name: Log in to Docker Hub (или другой registry)
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }} # Используйте GitHub Secrets
-          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Используйте GitHub Secrets
+      - name: Run Lint
+        uses: ./.github/actions/run-lint
+        # with:
+        #   command: 'npm run lint' # Пример для не-Nx проекта
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: . # Контекст сборки (возможно, нужно изменить на ./dist/apps/react-ci)
-          file: ./Dockerfile # Укажите путь к вашему Dockerfile
-          push: true
-          tags: |
-            your-dockerhub-username/react-ci:latest
-            your-dockerhub-username/react-ci:${{ github.sha }} # Тег с SHA коммита
+      - name: Run Unit Tests
+        uses: ./.github/actions/run-tests
+        # with:
+        #   command: 'npm test'
 
-      # 5. Blue-Green Deployment (Placeholder - сильно зависит от вашей инфраструктуры)
-      - name: Deploy to Green Environment (Placeholder)
-        run: |
-          echo "Deploying image your-dockerhub-username/react-ci:${{ github.sha }} to Green environment..."
-          # Здесь будет ваш скрипт или команда для деплоя в Green (Kubernetes, AWS ECS, Vercel, etc.)
-          # Пример: kubectl set image deployment/myapp myapp=your-dockerhub-username/react-ci:${{ github.sha }} --namespace=green
+      - name: Type Check
+        uses: ./.github/actions/run-typecheck
+        # with:
+        #   command: 'tsc --noEmit'
 
-      - name: Run Smoke Tests on Green (Placeholder)
-        run: |
-          echo "Running smoke tests on Green environment..."
-          # Скрипт для запуска базовых тестов на работоспособность Green окружения
-          # curl --fail <green-environment-url> || exit 1
+      - name: Security Audit
+        uses: ./.github/actions/run-audit
 
-      - name: Switch Traffic to Green (Placeholder)
-        run: |
-          echo "Switching production traffic to Green environment..."
-          # Скрипт или команда для переключения трафика (обновление Ingress, Load Balancer, DNS и т.д.)
-          # Пример: kubectl patch ingress myapp-ingress --type='json' -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/serviceName", "value": "myapp-green-service"}]'
+      - name: Build Application
+        uses: ./.github/actions/build-app
+        # with:
+        #   build-command: 'npm run build'
+        #   artifact-path: 'dist/my-app'
 
-      - name: Tear Down Blue Environment (Optional Placeholder)
-        run: |
-          echo "Tearing down old Blue environment after verification/wait period..."
-          # Скрипт для удаления старого Blue окружения
+      - name: Run E2E Tests
+        uses: ./.github/actions/run-e2e
+        # with:
+        #   command: 'npm run e2e'
 
+  # --- CD ---
+  deploy:
+    name: Continuous Deployment
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy to Production
+        uses: ./.github/actions/deploy-app
+        # Этот экшен должен будет принимать DOCKERHUB_USERNAME и TOKEN как `inputs`
+        # with:
+        #   docker-username: ${{ secrets.DOCKERHUB_USERNAME }}
+        #   docker-token: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -1,0 +1,13 @@
+name: 'Run Unit Tests'
+description: 'Runs unit tests'
+inputs:
+  command:
+    description: 'Test command to run'
+    required: false
+    default: 'npx nx run-many -t test --coverage'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Unit Tests
+      run: ${{ inputs.command }}
+      shell: bash

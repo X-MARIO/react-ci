@@ -1,0 +1,15 @@
+name: 'Install Dependencies'
+description: 'Installs dependencies using npm ci, skipping Playwright browsers'
+inputs:
+  command:
+    description: 'The command to install dependencies'
+    required: false
+    default: 'npm ci'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Dependencies
+      run: ${{ inputs.command }}
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      shell: bash
