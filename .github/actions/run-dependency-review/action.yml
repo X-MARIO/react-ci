@@ -1,0 +1,17 @@
+# .github/actions/run-dependency-review/action.yml
+name: 'Run Dependency Review'
+description: 'Runs dependency review scan. Assumes code is already checked out.'
+
+inputs:
+  fail-on-severity:
+    description: 'The severity level to fail on (critical, high, moderate, low)'
+    required: false
+    default: 'critical'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: ${{ inputs.fail-on-severity }}

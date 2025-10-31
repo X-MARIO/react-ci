@@ -1,0 +1,27 @@
+# .github/workflows/reusable-security-scan.yml
+name: Reusable Security Scan
+
+on:
+  workflow_call:
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run CodeQL Scan
+        uses: ./.github/actions/run-codeql
+        with:
+          languages: 'typescript' # Вы можете передать это как input в workflow_call, если нужно
+
+      - name: Run Dependency Review
+        uses: ./.github/actions/run-dependency-review
+        with:
+          fail-on-severity: 'critical'

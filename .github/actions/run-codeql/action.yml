@@ -1,0 +1,23 @@
+# .github/actions/run-codeql/action.yml
+name: 'Run CodeQL Scan'
+description: 'Runs CodeQL analysis (init, autobuild, analyze). Assumes code is already checked out.'
+
+inputs:
+  languages:
+    description: 'The language(s) to analyze (e.g., typescript, javascript)'
+    required: false
+    default: 'typescript'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ inputs.languages }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3

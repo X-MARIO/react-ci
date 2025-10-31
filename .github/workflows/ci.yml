@@ -9,6 +9,7 @@ on:
 permissions:
   actions: read
   contents: read
+  security-events: write
 
 jobs:
   # --- CI ---
@@ -64,6 +65,16 @@ jobs:
         uses: ./.github/actions/run-e2e
         # with:
         #   command: 'npm run e2e'
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Call Reusable Security Scan
+        uses: ./.github/workflows/reusable-security-scan.yml
 
   # --- CD ---
   deploy:
