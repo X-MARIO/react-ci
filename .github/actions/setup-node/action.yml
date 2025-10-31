@@ -1,10 +1,11 @@
+# .github/actions/setup-node/action.yml
 name: 'Setup Node.js'
-description: 'Sets up Node.js and caches package manager dependencies'
+description: 'Sets up Node.js and caches package manager dependencies and enables Corepack'
 inputs:
   node-version:
-    description: 'Node.js version'
+    description: 'Node.js version to use'
     required: false
-    default: '20'
+    default: '24.x'
   cache-manager:
     description: 'Package manager to cache (npm, yarn, pnpm)'
     required: false
@@ -12,8 +13,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Node.js
+    - name: Set up Node.js ${{ inputs.node-version }} && with cache-manager ${{ inputs.cache-manager }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.cache-manager }}
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable

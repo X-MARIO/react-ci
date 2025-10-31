@@ -80,3 +80,21 @@ And join the Nx community:
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)
 - [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+
+# Планы
+1. Docker
+2. Storybook
+3. Склеттон
+4. Сборка заранее pre SSR
+5. Доступность
+6. Секьюрити
+7. Интернационализация
+8. Скришотные тесты
+9. Sentry
+10. LogRocket
+11. Lighthouse
+12. Webpack Bundle Analyzer
+13. Плагин анализа циркулярных зависимостей
+14. Сборка под конкретные версии браузера
+15. SonarLint и другие
