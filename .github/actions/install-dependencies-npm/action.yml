@@ -1,5 +1,6 @@
+# .github/actions/install-dependencies-npm/action.yml
 name: 'Install Dependencies'
-description: 'Installs dependencies using npm ci, skipping Playwright browsers'
+description: 'Installs dependencies using npm'
 inputs:
   command:
     description: 'The command to install dependencies'
