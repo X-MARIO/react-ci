@@ -69,11 +69,21 @@ jobs:
 
   security:
     name: Security Scan
+    needs: snyk
     uses: ./.github/workflows/reusable-security-scan.yml
     permissions:
       contents: read
       security-events: write
       actions: read
+
+  snyk:
+    name: Snyk Scan
+    uses: ./.github/workflows/reusable-snyk-scan.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    secrets: inherit
 
   # --- CD ---
   deploy:
