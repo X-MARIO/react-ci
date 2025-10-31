@@ -11,7 +11,16 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Dependency Review
+    - name: Dependency Review (Pull Request)
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'merge_group'
       uses: actions/dependency-review-action@v4
       with:
         fail-on-severity: ${{ inputs.fail-on-severity }}
+
+    - name: Dependency Review (Push)
+      if: github.event_name == 'push'
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: ${{ inputs.fail-on-severity }}
+        base-ref: ${{ github.event.before }}
+        head-ref: ${{ github.event.after }}
