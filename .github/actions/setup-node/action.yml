@@ -10,6 +10,7 @@ inputs:
     description: 'Package manager to cache (npm, yarn, pnpm)'
     required: false
     default: 'npm'
+
 runs:
   using: 'composite'
   steps:

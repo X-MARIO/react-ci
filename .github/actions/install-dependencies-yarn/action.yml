@@ -1,8 +1,9 @@
-# .github/actions/install-dependencies/action.yml
-name: 'Install Node Dependencies'
+# .github/actions/install-dependencies-yarn/action.yml
+name: 'Install Dependencies'
 description: 'Installs dependencies using yarn'
+
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path

@@ -1,10 +1,10 @@
+# .github/actions/setup-playwright/action.yml
 name: 'Setup Playwright'
-description: 'Caches and installs Playwright browsers and system dependencies'
+description: 'Installs Playwright browsers and system dependencies'
 
 runs:
   using: 'composite'
   steps:
-    # Шаг 1: По-прежнему кэшируем браузеры
     - name: Cache Playwright Browsers
       id: cache-playwright
       uses: actions/cache@v4
@@ -13,10 +13,6 @@ runs:
         key: playwright-browsers-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           playwright-browsers-${{ runner.os }}-
-
-    # Шаг 2: Устанавливаем зависимости (и браузеры, если кэш не нашелся)
-    # Мы УБРАЛИ "if" - этот шаг должен выполняться ВСЕГДА.
-    # Он установит системные зависимости, даже если браузеры восстановлены из кэша.
     - name: Install Playwright Dependencies (Browsers + System)
       run: npx playwright install --with-deps
       shell: bash

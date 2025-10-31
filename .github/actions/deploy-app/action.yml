@@ -31,7 +31,7 @@ runs:
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }} # Используйте GitHub Secrets
-        password: ${{ secrets.DOCKERHUB_TOKEN }}   # Используйте GitHub Secrets
+        password: ${{ secrets.DOCKERHUB_TOKEN }} # Используйте GitHub Secrets
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5

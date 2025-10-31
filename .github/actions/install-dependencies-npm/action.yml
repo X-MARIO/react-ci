@@ -6,6 +6,7 @@ inputs:
     description: 'The command to install dependencies'
     required: false
     default: 'npm ci'
+
 runs:
   using: 'composite'
   steps:
