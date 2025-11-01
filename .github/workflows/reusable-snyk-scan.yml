@@ -26,27 +26,26 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-dependencies-npm
 
-      # Этот шаг устанавливает и аутентифицирует Snyk CLI
-      - name: Setup Snyk
-        uses: snyk/actions/setup@master
+      - name: Install Snyk CLI
+        run: npm install --location=global snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth "$SNYK_TOKEN"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # ИСПРАВЛЕНО: Используем 'run:' для вызова Snyk CLI
       - name: Run Snyk Open Source Scan
-        run: snyk test --all-projects --sarif-file-output=snyk-test.sarif
+        run: snyk test --all-projects --sarif-file-output=snyk-test.sarif --exclude=.nx,node_modules,dist
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true # Рекомендуется, чтобы сборка не падала из-за уязвимостей
+        continue-on-error: true
 
-      # ИСПРАВЛЕНО: Используем 'run:' для вызова Snyk CLI
       - name: Run Snyk Code Scan
-        run: snyk code test --sarif-file-output=snyk-code.sarif
+        run: snyk code test --sarif-file-output=snyk-code.sarif --exclude=.nx,node_modules,dist
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true # Рекомендуется
+        continue-on-error: true
 
-      # ИСПРАВЛЕНО: Загружаем оба SARIF файла по отдельности
       - name: Upload Snyk Open Source results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
