@@ -79,6 +79,8 @@ jobs:
   snyk:
     name: Snyk Scan
     uses: ./.github/workflows/reusable-snyk-scan.yml
+    with:
+      fail-on-error: true
     permissions:
       contents: read
       security-events: write
