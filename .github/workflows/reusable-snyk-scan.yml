@@ -3,8 +3,14 @@ name: Reusable Snyk Scan
 
 on:
   workflow_call:
+    inputs:
+      fail-on-error:
+        description: 'Установить в true, чтобы CI падал при обнаружении уязвимостей Snyk'
+        type: boolean
+        required: false
+        default: false
+
     secrets:
-      # Ожидаем SNYK_TOKEN от родительского воркфлоу (ci.yml)
       SNYK_TOKEN:
         required: true
 
@@ -35,12 +41,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Open Source Scan
+        id: snyk_test
         run: snyk test --all-projects --sarif-file-output=snyk-test.sarif --exclude=.nx,dist
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
 
       - name: Run Snyk Code Scan
+        id: snyk_code
         run: snyk code test --sarif-file-output=snyk-code.sarif --exclude=.nx,dist
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -55,3 +63,9 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-code.sarif
+
+      - name: Fail build if vulnerabilities were found
+        if: ${{ inputs.fail-on-error && (steps.snyk_test.conclusion == 'failure' || steps.snyk_code.conclusion == 'failure') }}
+        run: |
+          echo "Сборка падает, так как Snyk обнаружил уязвимости и 'fail-on-error' установлен в true."
+          exit 1
