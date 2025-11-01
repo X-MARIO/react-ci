@@ -35,13 +35,13 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Open Source Scan
-        run: snyk test --all-projects --sarif-file-output=snyk-test.sarif --exclude=.nx,node_modules,dist
+        run: snyk test --all-projects --sarif-file-output=snyk-test.sarif --exclude=node_modules
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
 
       - name: Run Snyk Code Scan
-        run: snyk code test --sarif-file-output=snyk-code.sarif --exclude=.nx,node_modules,dist
+        run: snyk code test --sarif-file-output=snyk-code.sarif --exclude=node_modules
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
